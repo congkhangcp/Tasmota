@@ -1,0 +1,45 @@
+name: Build_Tasmota_Custom
+
+on:
+  workflow_dispatch:  # Cho phép chạy thủ công trong tab Actions
+  push:               # Tự động build khi có push vào master
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    if: github.repository == 'congkhangcp/Tasmota'   # ✅ Chỉ chạy trong repo của bạn
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Install PlatformIO
+        run: |
+          python -m pip install --upgrade pip
+          pip install platformio
+
+      - name: Prepare configuration
+        run: |
+          cp ./platformio_override_sample.ini ./platformio_override.ini
+          echo "✅ Using user_config_override.h if exists"
+
+      - name: Build firmware (Tasmota32 custom)
+        env:
+          PYTHONIOENCODING: utf-8
+          PYTHONUTF8: '1'
+        run: |
+          platformio run -e tasmota32
+          mkdir -p ./build_output
+          cp ./.pio/build/tasmota32/firmware.bin ./build_output/tasmota_custom.bin
+
+      - name: Upload firmware artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tasmota_custom
+          path: ./build_output/tasmota_custom.bin
