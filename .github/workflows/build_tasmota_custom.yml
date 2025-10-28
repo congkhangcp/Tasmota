@@ -1,45 +1,53 @@
-name: Build_Tasmota_Custom
+name: Build Tasmota Custom Firmware
 
 on:
-  workflow_dispatch:  # Cho phép chạy thủ công trong tab Actions
-  push:               # Tự động build khi có push vào master
+  workflow_dispatch:
+  push:
     branches:
       - master
+      - main
 
 jobs:
   build:
     runs-on: ubuntu-latest
-    if: github.repository == 'congkhangcp/Tasmota'   # ✅ Chỉ chạy trong repo của bạn
+
     steps:
-      - name: Checkout source code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python environment
         uses: actions/setup-python@v5
         with:
-          python-version: '3.13'
+          python-version: '3.x'
 
       - name: Install PlatformIO
         run: |
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Prepare configuration
+      - name: Prepare environment
         run: |
-          cp ./platformio_override_sample.ini ./platformio_override.ini
-          echo "✅ Using user_config_override.h if exists"
+          echo ">>> Preparing custom Tasmota build environment"
+          mkdir -p ./tasmota/custom
+          cp ./tasmota/my_user_config.h ./tasmota/custom/ || true
+          cp ./user_config_override.h ./tasmota/ || true
 
-      - name: Build firmware (Tasmota32 custom)
-        env:
-          PYTHONIOENCODING: utf-8
-          PYTHONUTF8: '1'
+      - name: Build custom firmware
+        working-directory: ./tasmota
         run: |
-          platformio run -e tasmota32
+          echo ">>> Starting custom build..."
+          platformio run -e tasmota  # or -e tasmota_4M if using 4M build
+          ls -lh .pio/build/tasmota/ || true
+
+      - name: Rename and upload firmware
+        if: success()
+        run: |
           mkdir -p ./build_output
-          cp ./.pio/build/tasmota32/firmware.bin ./build_output/tasmota_custom.bin
+          cp ./tasmota/.pio/build/tasmota/firmware.bin ./build_output/tasmota_custom.bin
+        continue-on-error: false
 
-      - name: Upload firmware artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
-          name: tasmota_custom
+          name: tasmota_custom_firmware
           path: ./build_output/tasmota_custom.bin
