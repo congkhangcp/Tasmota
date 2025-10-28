@@ -9,7 +9,7 @@
 #define USE_PWM_DIMMER            // PWM output (speed control)
 
 // ===== TÙY CHỌN CƠ BẢN =====
-#define USER_TEMPLATE "{\"NAME\":\"FanCtrl\",\"GPIO\":[1,1,1,1,6656,6624,1,1,1,1,1,1,1,1],\"FLAG\":0,\"BASE\":18}"
+#define USER_TEMPLATE "{\"NAME\":\"FanCtrl\",\"GPIO\":[1,1,1,1,1,1,1,1,1,1,1,1,1,1],\"FLAG\":0,\"BASE\":18}"
 #define MODULE 0  // Generic module
 
 #endif  // _USER_CONFIG_OVERRIDE_H_
