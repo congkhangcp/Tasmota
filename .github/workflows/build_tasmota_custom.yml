@@ -25,25 +25,31 @@ jobs:
           python -m pip install --upgrade pip
           pip install platformio
 
-      - name: Prepare environment
+      - name: Verify Tasmota structure
         run: |
-          echo ">>> Preparing custom Tasmota build environment"
-          mkdir -p ./tasmota/custom
-          cp ./tasmota/my_user_config.h ./tasmota/custom/ || true
-          cp ./user_config_override.h ./tasmota/ || true
+          echo "Root folder content:"
+          ls -lh
+          echo "Tasmota subfolder content:"
+          ls -lh ./tasmota || true
+
+      - name: Copy override config
+        run: |
+          echo ">>> Copying user_config_override.h"
+          cp ./user_config_override.h ./ || true
+          echo ">>> Done"
 
       - name: Build custom firmware
-        working-directory: ./tasmota
         run: |
-          echo ">>> Starting custom build..."
-          platformio run -e tasmota  # or -e tasmota_4M if using 4M build
-          ls -lh .pio/build/tasmota/ || true
+          echo ">>> Starting Tasmota custom build..."
+          platformio run -e tasmota  # build default
+          echo ">>> Build complete!"
+          ls -lh .pio/build/tasmota/
 
       - name: Rename and upload firmware
         if: success()
         run: |
           mkdir -p ./build_output
-          cp ./tasmota/.pio/build/tasmota/firmware.bin ./build_output/tasmota_custom.bin
+          cp .pio/build/tasmota/firmware.bin ./build_output/tasmota_custom.bin
         continue-on-error: false
 
       - name: Upload build artifact
